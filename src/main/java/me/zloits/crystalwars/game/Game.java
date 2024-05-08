@@ -12,10 +12,7 @@ import me.zloits.crystalwars.event.UserJoinGameEvent;
 import me.zloits.crystalwars.event.UserLeaveGameEvent;
 import me.zloits.crystalwars.task.GameStartedTask;
 import me.zloits.crystalwars.task.GameStartingTask;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -48,9 +45,14 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
         this.config = config;
 
         state = GameState.WAITING;
+
+        WorldCreator worldCreator = new WorldCreator(config.getString("game.world"));
+        worldCreator.createWorld();
         world = Bukkit.getWorld(config.getString("game.world"));
 
         String path = "spawn.";
+        WorldCreator worldCreator1 = new WorldCreator(plugin.getLobbyLocation().getWorld().getName());
+        worldCreator1.createWorld();
         spawnLocation = getLocation(config.getDouble(path + "x" ), config.getDouble(path + "y"), config.getDouble(path + "z"));
 
         users = new ArrayList<>();
@@ -68,7 +70,7 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
 
         String path2 = "team.";
         redTeam = new me.zloits.crystalwars.game.team.Team(TeamColor.RED, getLocation(getConfig().getDouble(path2 + ".red.x"), getConfig().getDouble(path2 + ".red.y"), getConfig().getDouble(path2 + ".red.z")));
-        redTeam = new me.zloits.crystalwars.game.team.Team(TeamColor.RED, getLocation(getConfig().getDouble(path2 + ".blue.x"), getConfig().getDouble(path2 + ".blue.y"), getConfig().getDouble(path2 + ".blue.z")));
+        blueTeam = new me.zloits.crystalwars.game.team.Team(TeamColor.BLUE, getLocation(getConfig().getDouble(path2 + ".blue.x"), getConfig().getDouble(path2 + ".blue.y"), getConfig().getDouble(path2 + ".blue.z")));
     }
 
     @Override
@@ -113,7 +115,6 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
     public void addUser(GameUser gameUser) {
         if (gameUser == null) return;
         if (gameUser.isPlaying()) return;
-        if (getUsers().contains(gameUser)) return;
         if (getUsers().size() == maxPlayers) return;
         if (getState() == GameState.PLAYING || getState() == GameState.END) return;
 
@@ -127,11 +128,10 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
 
         Bukkit.getPluginManager().callEvent(new UserJoinGameEvent(this, gameUser));
 
-        if (getUsers().size() >= minPlayers) {
+        if (getUsers().size() == minPlayers) {
             setState(GameState.STARTING);
 
-            gameStartingTask = new GameStartingTask(this);
-            gameStartingTask.runTaskTimer(plugin, 0, 20);
+            setupWaitingCountdown();
 
             Bukkit.getPluginManager().callEvent(new GameStartingEvent(this));
         }
@@ -140,7 +140,7 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
     @Override
     public void removeUser(GameUser gameUser) {
         if (gameUser == null) return;
-        if (gameUser.isPlaying()) return;
+        if (!gameUser.isPlaying()) return;
         if (!getUsers().contains(gameUser)) return;
 
         getUsers().remove(gameUser);
@@ -154,9 +154,7 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
 
         if (gameStartingTask.enabled) {
             gameStartingTask.enabled = false;
-        }
-
-        if (getState() == GameState.PLAYING && (getRedTeam().getUsers().isEmpty() || getBlueTeam().getUsers().isEmpty())) {
+        } else if (getState() == GameState.PLAYING && (getRedTeam().getUsers().isEmpty() || getBlueTeam().getUsers().isEmpty())) {
             setState(GameState.END);
 
             List<GameUser> winners = new ArrayList<>();
@@ -369,5 +367,15 @@ public class Game implements me.zloits.crystalwars.api.game.Game {
         Location location = new Location(world, x, y, z);
 
         return location;
+    }
+
+    private void setupWaitingCountdown() {
+        gameStartingTask = new GameStartingTask(this);
+        gameStartingTask.runTaskTimer(plugin, 0, 20);
+    }
+
+    public void setupPreRoundCountdown() {
+        gameStartedTask = new GameStartedTask(this);
+        gameStartedTask.runTaskTimer(plugin, 0, 20);
     }
 }

@@ -8,7 +8,6 @@ import me.zloits.crystalwars.game.GameUser;
 import me.zloits.crystalwars.util.PlacedBlocks;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
-import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,6 +16,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,28 @@ public class PlayerListener implements Listener {
     private CrystalWars plugin = CrystalWars.getInstance();
 
     @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        GameUser gameUser = new GameUser(e.getPlayer().getUniqueId());
+
+        plugin.getUsers().add(gameUser);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        GameUser gameUser = plugin.getGameUser(e.getPlayer().getUniqueId());
+        Game game = (Game) plugin.getGameManager().getGame(gameUser);
+
+        if (game != null && game.getUsers().contains(gameUser)) {
+            game.removeUser(gameUser);
+        }
+
+        plugin.getUsers().remove(plugin.getGameUser(e.getPlayer().getUniqueId()));
+    }
+
+    @EventHandler
     public void onDamage(EntityDamageByEntityEvent e) {
+        if (e.getEntity().getType() != EntityType.PLAYER) return;
+
         Player player = (Player) e.getEntity();
         if (player == null) return;
 
@@ -90,6 +112,8 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onDeath(EntityDamageEvent e) {
+        if (e.getEntity().getType() != EntityType.PLAYER) return;
+
         Player player = (Player) e.getEntity();
         GameUser gameUser = plugin.getGameUser(player.getUniqueId());
 

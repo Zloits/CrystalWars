@@ -1,6 +1,7 @@
 package me.zloits.crystalwars;
 
 import me.zloits.crystalwars.commands.JoinCommand;
+import me.zloits.crystalwars.commands.LeaveCommand;
 import me.zloits.crystalwars.config.GameConfigLoader;
 import me.zloits.crystalwars.game.GameManager;
 import me.zloits.crystalwars.game.GameUser;
@@ -9,6 +10,7 @@ import me.zloits.crystalwars.listeners.PlayerListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public final class CrystalWars extends JavaPlugin {
         gameManager = new GameManager();
 
         users = new ArrayList<>();
-        for (OfflinePlayer player : Bukkit.getOfflinePlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             GameUser gameUser = new GameUser(player.getUniqueId());
             users.add(gameUser);
         }
@@ -47,6 +49,7 @@ public final class CrystalWars extends JavaPlugin {
         registerListeners();
 
         getCommand("join").setExecutor(new JoinCommand());
+        getCommand("leave").setExecutor(new LeaveCommand());
 
     }
 

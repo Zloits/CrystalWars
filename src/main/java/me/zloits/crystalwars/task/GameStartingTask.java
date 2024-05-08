@@ -5,25 +5,25 @@ import me.zloits.crystalwars.api.game.GameState;
 import me.zloits.crystalwars.event.GameCountdownCancelledEvent;
 import me.zloits.crystalwars.game.Game;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class GameStartingTask extends BukkitRunnable {
     private CrystalWars plugin = CrystalWars.getInstance();
     private Game game;
+    private int countdown;
 
     public static boolean enabled;
 
     public GameStartingTask(Game game) {
         this.game = game;
+        countdown = game.getWaitingCountdown();
 
         enabled = true;
     }
 
     @Override
     public void run() {
-        int countdown =- game.getWaitingCountdown();
+        countdown--;
 
         if (!enabled) {
             game.setState(GameState.WAITING);
@@ -34,13 +34,11 @@ public class GameStartingTask extends BukkitRunnable {
             Bukkit.getPluginManager().callEvent(new GameCountdownCancelledEvent(game));
 
             cancel();
-        }
-
-        if (countdown == 0) {
+        } else if (countdown == 0) {
             game.setState(GameState.PLAYING);
             enabled = false;
 
-            game.gameStartedTask = new GameStartedTask(game);
+            game.setupPreRoundCountdown();
 
             cancel();
         } else {

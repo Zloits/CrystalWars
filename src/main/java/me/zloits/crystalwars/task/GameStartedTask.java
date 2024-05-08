@@ -13,18 +13,20 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class GameStartedTask extends BukkitRunnable {
     private CrystalWars plugin = CrystalWars.getInstance();
     private Game game;
+    private int countdown;
 
     public static boolean enableMovement;
 
     public GameStartedTask(Game game) {
         this.game = game;
+        countdown = game.getPreRoundCountdown();
 
         enableMovement = false;
     }
 
     @Override
     public void run() {
-        int countdown =- game.getPreRoundCountdown();
+        countdown--;
 
         if (countdown == 0) {
             enableMovement = true;

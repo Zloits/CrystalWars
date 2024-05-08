@@ -1,0 +1,6 @@
+name: CrystalWars
+version: '${project.version}'
+main: me.zloits.crystalwars.CrystalWars
+api-version: '1.20'
+commands:
+  join:

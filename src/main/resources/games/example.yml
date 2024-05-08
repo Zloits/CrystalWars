@@ -1,0 +1,33 @@
+game:
+  id: map-0-1
+  state: waiting
+  world: map-0
+
+crystal:
+  x: 0
+  y: 0
+  z: 0
+
+spawn:
+  x: 0
+  y: 0
+  z: 0
+
+size:
+  min-players: 2
+  max-players: 4
+  max-team-players: 1
+
+countdown:
+  waiting: 30
+  pre-round: 5
+
+team:
+  red:
+    x: 0
+    y: 0
+    z: 0
+  blue:
+    x: 0
+    y: 0
+    z: 0
